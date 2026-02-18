@@ -4,6 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -42,9 +45,6 @@ func New(addr string, handlers *Handlers, wsHub *WebSocketHub) *Server {
 
 	// ── Routes ────────────────────────────────────────────────────────────────
 
-	// Serve the frontend UI from the ./frontend directory.
-	r.Handle("/*", http.FileServer(http.Dir("frontend")))
-
 	// API routes
 	r.Post("/upload", handlers.HandleUpload)
 	r.Get("/jobs", handlers.HandleListJobs)
@@ -55,6 +55,9 @@ func New(addr string, handlers *Handlers, wsHub *WebSocketHub) *Server {
 	// URL: ws://localhost:8080/ws?job_id=<uuid>
 	r.Get("/ws", wsHub.HandleWebSocket)
 
+	// Serve Angular build output with SPA fallback.
+	r.Get("/*", spaFileServer(resolveFrontendDir()))
+
 	return &Server{
 		router: r,
 		httpServer: &http.Server{
@@ -64,6 +67,41 @@ func New(addr string, handlers *Handlers, wsHub *WebSocketHub) *Server {
 			WriteTimeout: 120 * time.Second, // long for large demo uploads
 			IdleTimeout:  120 * time.Second,
 		},
+	}
+}
+
+func resolveFrontendDir() string {
+	candidates := []string{
+		filepath.Join("frontend", "dist", "cs2go", "browser"),
+		filepath.Join("frontend", "dist", "cs2go"),
+		filepath.Join("frontend"),
+	}
+
+	for _, dir := range candidates {
+		if info, err := os.Stat(dir); err == nil && info.IsDir() {
+			return dir
+		}
+	}
+
+	return filepath.Join("frontend")
+}
+
+func spaFileServer(root string) http.HandlerFunc {
+	fileServer := http.FileServer(http.Dir(root))
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := strings.TrimPrefix(r.URL.Path, "/")
+		if path == "" {
+			path = "index.html"
+		}
+
+		target := filepath.Join(root, path)
+		if info, err := os.Stat(target); err == nil && !info.IsDir() {
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+
+		r.URL.Path = "/index.html"
+		fileServer.ServeHTTP(w, r)
 	}
 }
 

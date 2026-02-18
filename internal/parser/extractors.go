@@ -176,7 +176,6 @@ func registerExtractors(
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
 func getOrCreate(m map[uint64]*models.PlayerStats, player *common.Player) *models.PlayerStats {
 	sid := player.SteamID64
 	if s, ok := m[sid]; ok {
@@ -193,7 +192,6 @@ func getOrCreate(m map[uint64]*models.PlayerStats, player *common.Player) *model
 	return s
 }
 
-// teamName converts common.Team (type int) to a display string.
 func teamName(t common.Team) string {
 	switch t {
 	case common.TeamTerrorists:
@@ -207,7 +205,6 @@ func teamName(t common.Team) string {
 	}
 }
 
-// reasonName converts events.RoundEndReason (type int) to a display string.
 func reasonName(r events.RoundEndReason) string {
 	switch r {
 	case events.RoundEndReasonTargetBombed:
@@ -242,7 +239,6 @@ func getRoundKillLog(roundKillLogs map[int][]string, round int) []string {
 	if len(logs) == 0 {
 		return nil
 	}
-	// Return a copy so callers can't mutate internal parser state.
 	return append([]string(nil), logs...)
 }
 

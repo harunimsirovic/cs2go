@@ -41,7 +41,6 @@ func Parse(path string, onProgress ProgressFn) (*models.DemoResult, error) {
 			}
 		})
 
-		// Register all stat extractors.
 		registerExtractors(p, playerStats, &roundLog, roundKillLogs, &roundStartTick, &currentRound)
 
 		// Report progress on every RoundEnd.
@@ -104,8 +103,6 @@ func flattenKillLog(roundLog []models.RoundSnapshot) []string {
 }
 
 func computeDerivedStats(s *models.PlayerStats, tickRate float64) {
-	// AverageSpeed needs total time, not just round time.
-	// We store total distance; speed is computed in the result handler
-	// once we know the full duration. For now, store the raw distance.
+	// TODO
 	_ = math.Round // imported for future use
 }

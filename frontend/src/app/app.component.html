@@ -1,0 +1,147 @@
+<main>
+  <header>
+    <div class="logo"><img alt="CS2" src="https://cdn3.emoji.gg/emojis/70385-csgo.png"></div>
+    <h1>CS2 <span>Demo</span> Analyzer</h1>
+    <span class="header-tag">v0.2.0 // ANGULAR FRONTEND</span>
+  </header>
+
+  <div
+    class="upload-zone"
+    [class.drag-over]="isDragOver"
+    (click)="triggerFileDialog()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave()"
+    (drop)="onDrop($event)"
+  >
+    <div class="upload-icon">*</div>
+    <h2>Drop Demo File</h2>
+    <p>Drag a .dem file here or click to browse</p>
+    <button class="btn" type="button" (click)="$event.stopPropagation(); triggerFileDialog()">Select .dem file</button>
+    <input #fileInput type="file" accept=".dem" (change)="onFileSelected($event)">
+  </div>
+
+  <div id="jobs-section">
+    <div class="section-title">Active Jobs</div>
+    <div id="jobs-list">
+      <div
+        *ngFor="let job of jobs; trackBy: trackByJobId"
+        class="job-card animate-in"
+        [class.done]="job.status === 'done'"
+        [class.error]="job.status === 'error'"
+      >
+        <div class="job-header">
+          <span class="job-id">{{ job.id }}</span>
+          <span class="status-badge" [class]="['status-badge', job.status].join(' ')">
+            {{ job.status.toUpperCase() }}
+          </span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="job.progress"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="results-section" *ngIf="hasResults && results as result">
+    <div class="section-title">Analysis Results</div>
+
+    <div class="result-header">
+      <div class="stat-box">
+        <div class="stat-box-label">Map</div>
+        <div class="stat-box-value map">{{ result.map_name || 'Unknown' }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-label">Total Rounds</div>
+        <div class="stat-box-value">{{ result.total_rounds ?? 0 }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-label">Duration</div>
+        <div class="stat-box-value">{{ formatDuration(result.duration_seconds) }}</div>
+      </div>
+    </div>
+
+    <div class="section-title">Players</div>
+    <div class="player-grid">
+      <div class="player-card animate-in" *ngFor="let player of players; trackBy: trackByPlayer">
+        <div class="player-card-header">
+          <span class="player-name">{{ player.name || 'Unknown' }}</span>
+          <span class="player-team" [ngClass]="player.team">{{ player.team || '?' }}</span>
+        </div>
+
+        <div class="player-stats-grid">
+          <div class="mini-stat">
+            <div class="mini-stat-val">{{ player.kills ?? 0 }}/{{ player.deaths ?? 0 }}</div>
+            <div class="mini-stat-label">K / D</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-val">{{ playerAccuracy(player) }}%</div>
+            <div class="mini-stat-label">Accuracy</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-val">{{ headshotRate(player) }}%</div>
+            <div class="mini-stat-label">HS Rate</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-val">{{ utilityUsed(player) }}</div>
+            <div class="mini-stat-label">Util Used</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-val">${{ formatMoney(player.total_money_spent) }}</div>
+            <div class="mini-stat-label">Money Spent</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-val">{{ kdRatio(player) }}</div>
+            <div class="mini-stat-label">KD Ratio</div>
+          </div>
+        </div>
+
+        <div class="hit-bars" *ngIf="topHitLocations(player.hit_locations).length > 0">
+          <ng-container *ngFor="let hit of topHitLocations(player.hit_locations)">
+            <div class="hit-bar-label">
+              <span>{{ hit.name }}</span>
+              <span>{{ hit.percent }}%</span>
+            </div>
+            <div class="hit-bar-track">
+              <div class="hit-bar-fill" [class.head]="hit.isHead" [style.width.%]="hit.percent"></div>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="insights" *ngIf="player.insights && player.insights.length > 0">
+          <div class="insight-item" [class]="['insight-item', insight.severity].join(' ')" *ngFor="let insight of player.insights">
+            <div class="insight-cat">{{ insight.category }}</div>
+            {{ insight.message }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="round-log">
+      <div class="section-title">Round Log</div>
+      <table class="round-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Winner</th>
+            <th>Reason</th>
+            <th>Duration</th>
+            <th>Kill Log</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let round of result.round_log || []">
+            <td>{{ round.round ?? '-' }}</td>
+            <td [class.winner-ct]="round.winner === 'CT'" [class.winner-t]="round.winner === 'T'">{{ round.winner || '-' }}</td>
+            <td>{{ round.reason || '-' }}</td>
+            <td>{{ (round.duration_seconds ?? 0).toFixed(1) }}s</td>
+            <td>{{ formatKillLog(round.kill_log) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="log">
+    <p *ngFor="let line of logs" [class]="line.type ? line.type : ''">&gt; {{ line.message }}</p>
+  </div>
+</main>
