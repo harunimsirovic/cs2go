@@ -125,7 +125,7 @@
             <th>Winner</th>
             <th>Reason</th>
             <th>Duration</th>
-            <th>Kill Log</th>
+            <th>Kill Logs</th>
           </tr>
         </thead>
         <tbody>
@@ -134,7 +134,9 @@
             <td [class.winner-ct]="round.winner === 'CT'" [class.winner-t]="round.winner === 'T'">{{ round.winner || '-' }}</td>
             <td>{{ round.reason || '-' }}</td>
             <td>{{ (round.duration_seconds ?? 0).toFixed(1) }}s</td>
-            <td>{{ formatKillLog(round.kill_log) }}</td>
+            <td *ngIf="round.kill_log">
+              <p *ngFor="let log of round.kill_log">{{ log }}<br></p>
+            </td>
           </tr>
         </tbody>
       </table>

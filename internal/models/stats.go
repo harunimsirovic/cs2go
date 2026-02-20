@@ -14,7 +14,7 @@ type DemoResult struct {
 	Rounds   int                     `json:"total_rounds"`
 	Players  map[uint64]*PlayerStats `json:"players"`
 	RoundLog []RoundSnapshot         `json:"round_log"`
-	KillLog  []string                `json:"kill_log"`
+	KillLog  []string
 }
 
 // PlayerStats aggregates all per-player metrics across the demo.
@@ -52,6 +52,9 @@ type PlayerStats struct {
 	// Movement
 	TotalDistanceMoved float64 `json:"total_distance_moved"`
 	AverageSpeed       float64 `json:"average_speed"`
+
+	// Advanced context-aware stats
+	Advanced AdvancedStats `json:"advanced"`
 }
 
 // RoundSnapshot captures the outcome of each round.

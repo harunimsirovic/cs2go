@@ -39,7 +39,7 @@ interface RoundInfo {
   winner?: string;
   reason?: string;
   duration_seconds?: number;
-  kill_log?: string[] | string;
+  kill_log?: string[];
 }
 
 interface AnalysisResult {
@@ -169,7 +169,7 @@ export class AppComponent implements OnDestroy {
     return `${player.name ?? 'unknown'}-${player.team ?? '?'}`;
   }
 
-  formatKillLog(killLog: string[] | string | undefined): string {
+  formatKillLog(killLog: string | undefined): string {
     if (Array.isArray(killLog)) {
       return killLog.join(', ');
     }

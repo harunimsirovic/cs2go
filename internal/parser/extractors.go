@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"log"
 	"math"
 
 	"cs2-demo-analyzer/internal/models"
@@ -80,7 +79,7 @@ func registerExtractors(
 			killOption = killOption + " (😶‍🌫️)"
 		}
 
-		killLog := fmt.Sprintf("%s =%v%s%s= %s\n",
+		killLog := fmt.Sprintf("%s (%v%s%s) %s\n",
 			e.Killer,
 			e.Weapon,
 			hs,
@@ -88,7 +87,6 @@ func registerExtractors(
 			e.Victim,
 		)
 		appendRoundKillLog(roundKillLogs, *currentRound, killLog)
-		log.Printf("%s =%v%s%s>= %s", e.Killer, e.Weapon, hs, killOption, e.Victim)
 
 	})
 
