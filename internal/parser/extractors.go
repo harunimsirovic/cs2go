@@ -249,6 +249,14 @@ func registerExtractors(
 			s := getOrCreate(playerStats, e.Killer)
 			s.Kills++
 
+			// Heatmap: record kill position
+			pos := e.Killer.Position()
+			s.Heatmap.Kills = append(s.Heatmap.Kills, models.Position{
+				X: pos.X,
+				Y: pos.Y,
+				Z: pos.Z,
+			})
+
 			// Multi-kill tracking
 			ctx.killsThisRound[e.Killer.SteamID64]++
 
@@ -311,6 +319,14 @@ func registerExtractors(
 			s := getOrCreate(playerStats, e.Victim)
 			s.Deaths++
 
+			// Heatmap: record death position
+			pos := e.Victim.Position()
+			s.Heatmap.Deaths = append(s.Heatmap.Deaths, models.Position{
+				X: pos.X,
+				Y: pos.Y,
+				Z: pos.Z,
+			})
+
 			// Entry fragging (first death of the round)
 			if ctx.firstDeathTick == 0 {
 				ctx.firstDeathTick = tick
@@ -329,8 +345,33 @@ func registerExtractors(
 			}
 
 			// Death context: from behind?
-			// Heuristic: if victim was shot in the back (simplified, needs view angles for true calc)
-			// For now, skip this — requires player.ViewDirectionX/Y vs attacker position delta
+			// Calculate if attacker was outside victim's field of view
+			if e.Killer != nil {
+				victimPos := e.Victim.Position()
+				attackerPos := e.Killer.Position()
+
+				// Vector from victim to attacker
+				dx := attackerPos.X - victimPos.X
+				dy := attackerPos.Y - victimPos.Y
+				angleToAttacker := math.Atan2(dy, dx) * 180 / math.Pi
+
+				// Victim's view direction (yaw)
+				victimYaw := float64(e.Victim.ViewDirectionX())
+
+				// Normalize angle difference to [-180, 180]
+				angleDiff := angleToAttacker - victimYaw
+				for angleDiff > 180 {
+					angleDiff -= 360
+				}
+				for angleDiff < -180 {
+					angleDiff += 360
+				}
+
+				// If attacker is >120° from victim's view direction = from behind
+				if math.Abs(angleDiff) > 120 {
+					s.Advanced.DeathsFromBehind++
+				}
+			}
 
 			// Death context: utility left?
 			utilLeft := 0

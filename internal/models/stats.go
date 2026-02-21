@@ -55,6 +55,9 @@ type PlayerStats struct {
 
 	// Advanced context-aware stats
 	Advanced AdvancedStats `json:"advanced"`
+
+	// Heatmap
+	Heatmap HeatmapData `json:"heatmap_data"`
 }
 
 // RoundSnapshot captures the outcome of each round.
